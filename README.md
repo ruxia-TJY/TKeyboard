@@ -6,27 +6,36 @@ Leonardo Pro Micro使用ATMega32U4的USB通信功能
 
 ## 教程
 
+<p style="text-align:center;">成品图</p>
+
+<img src="./PreView/TKeyboard.jpg" style="zoom: 15%;" />
+
+<img src="./PreView/TKeyboard2.jpg" style="zoom:15%;" />
+
 ### 组装
 
-​	共计由两块电路板组装，所有电路集中在主电路板上，floor作为底部支撑，没有电路，两块电路板由4个M3螺丝组装。
+​	共计由两块电路板组装，所有电路集中在主电路板上。
+
+​	floor仅仅作为外壳使用，没有电路，如果您制作的话，可以将两块电路板由4个M3螺丝组装。
 
 
 
 
 <p style="text-align:center;">电路板正面图-使用立创EDA 2D功能</p>
 
-![](./电路板_PreView.png)
+![](./Img/电路板_PreView.png)
 
 <p style="text-align:center;">电路板背面图-使用立创EDA 2D功能</p>
 
-![](./电路板背面_PreView.png)
+![](./Img/电路板背面_PreView.png)
 
-1. 焊接好正面元件
-2. 如电路板背面图在电路板背面焊接两排1x12排母
-3. 在背面左侧焊接1x5排针
-4. 将KY-040从背面插入圆孔，固定，将KY-040上的排针与步骤三的排针使用引线连接
-5. 将Leonardo Pro Micro插入排母
-6. 使用M3螺丝将电路板与底板连接起来
+1. 焊接好正面贴片元件，如上图显示焊接电阻，LED。
+2. 其中1x4排母焊在正面，供OLED插入
+3. 在电路板背面焊接两排1x12排母，供Leonardo插入
+4. 在背面焊接1x5排针
+5. 将KY-040从背面插入圆孔，固定，将KY-040上的排针与1x5排针使用引线连接
+6. 将Leonardo Pro Micro插入排母
+7. 使用M3螺丝将电路板与底板连接起来
 
 
 
@@ -49,7 +58,8 @@ Leonardo Pro Micro使用ATMega32U4的USB通信功能
 ### 修改
 
 + Pro Micro有两种，两种的电路板大小不同，排针位置不同。本项目采用Mini插口，当您购买Micro插口时候，需要改变电路板两行1x12排母位置。
-+ 当您对本项目电路图进行修改时，请删去作者图标：涂，以及作者:ruxia。
++ 由于我手中没有旋转编码器，只有模块，所以采用电路板焊接排针，用导线连接，您可以修改此处。
++ 当您对本项目电路图进行修改时，请删去作者图标：涂，以及作者:ruxia,并修改代码中将图标作者显示在OLED中的部分
 
 
 
@@ -57,7 +67,7 @@ Leonardo Pro Micro使用ATMega32U4的USB通信功能
 
 Leonardo Pro Micro引脚示意图
 
-<img src="./Leonardo.png" style="zoom:50%;" />
+<img src="./Img/Leonardo.png" style="zoom:50%;" />
 
 | 模块                    | 数量 |
 | :-----------------------: | :----: |

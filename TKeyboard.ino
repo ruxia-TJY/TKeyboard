@@ -18,6 +18,9 @@
 #define ModeLED 5
 #define BtnLED 6
 
+#define OLED_SCREEN_WIDTH 128
+#define OLED_SCREEN_HEIGHT 64
+
 // 旋钮模式
 bool IsModeVOL = true;
 // 按键模式
@@ -42,9 +45,10 @@ byte MatKeyboard_colPin[MatKeyboard_COLS] = {10, 16, 14, 15};
 
 Keypad keypad = Keypad(makeKeymap(keys), MatKeyboard_rowPin, MatKeyboard_colPin, MatKeyboard_ROWS, MatKeyboard_COLS);
 
-Adafruit_SSD1306 display(128, 64, &Wire,OLED_RESET);
+Adafruit_SSD1306 display(OLED_SCREEN_WIDTH, OLED_SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 void setup() {
+  
   pinMode(CLK, INPUT);
   pinMode(DT, INPUT);
   pinMode(SW, INPUT_PULLUP);
@@ -56,17 +60,31 @@ void setup() {
   Consumer.begin();
   System.begin();
 
-
-  display.begin(SSD1306_SWITCHCAPVCC,0x3C);
-  display.setTextColor(WHITE);//开像素点发光
-  display.clearDisplay();//清屏
-  
   digitalWrite(ModeLED, HIGH);
   digitalWrite(BtnLED, HIGH);
 
   lastStateCLK = digitalRead(CLK);
+
+  
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  
+  
+  initDraw();
+  display.display();
 }
 
+void initDraw()
+{
+  display.clearDisplay();//清屏
+  display.setTextColor(WHITE);//开像素点发光
+  
+  display.setTextSize(2); //设置字体大小  
+  display.setCursor(13, 5);//设置显示位置
+  display.println("TKeyboard");
+
+  display.setTextSize(2);//设置字体大小  
+  display.setCursor(25, 40);//设置显示位置
+  display.println("-ruxia-");
+}
 void loop() {
   currentStateCLK = digitalRead(CLK);
 
@@ -94,20 +112,24 @@ void loop() {
 
   // 旋钮按下
   int btnState = digitalRead(SW);
-
+  
   if (btnState == LOW) {
+    //if 50ms have passed since last LOW pulse, it means that the
+    //button has been pressed, released and pressed again
     if (millis() - lastButtonPress > 50) {
+      Serial.println("Button pressed!");
       Consumer.write(MEDIA_VOL_MUTE);
     }
 
+    // Remember last button press event
     lastButtonPress = millis();
   }
-
   // 矩阵按键
   char key = keypad.getKey();
   if (key != NO_KEY) {
     Serial.println(key);
     switch (key) {
+      Serial.println(key);
       case '1':
         System.write(SYSTEM_SLEEP);
         break;
@@ -127,9 +149,10 @@ void loop() {
           digitalWrite(ModeLED, HIGH);
         }
         break;
-      case '5':
+      case '5':        
         if (IsBtnMusic) {
           Consumer.write(MEDIA_PREV);
+          
         }
         else {
           Consumer.write(CONSUMER_BROWSER_BACK);
@@ -181,5 +204,6 @@ void loop() {
     }
   }
 
-  delay(1);
+  delay(1)
+  ;
 }
