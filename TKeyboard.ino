@@ -1,6 +1,7 @@
 /*
    TKeyboard
    小键盘项目
+   Gitee:https://gitee.com/ruxia-tjy/tkeyboard
 */
 
 #include <HID-Project.h>
@@ -48,9 +49,8 @@ Keypad keypad = Keypad(makeKeymap(keys), MatKeyboard_rowPin, MatKeyboard_colPin,
 Adafruit_SSD1306 display(OLED_SCREEN_WIDTH, OLED_SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 void setup() {
-  
-  pinMode(CLK, INPUT);
-  pinMode(DT, INPUT);
+  pinMode(CLK, INPUT_PULLUP);
+  pinMode(DT, INPUT_PULLUP);
   pinMode(SW, INPUT_PULLUP);
 
   pinMode(ModeLED, OUTPUT);
@@ -65,26 +65,26 @@ void setup() {
 
   lastStateCLK = digitalRead(CLK);
 
-  
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  
-  
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+
   initDraw();
   display.display();
 }
 
 void initDraw()
 {
-  display.clearDisplay();//清屏
-  display.setTextColor(WHITE);//开像素点发光
-  
-  display.setTextSize(2); //设置字体大小  
-  display.setCursor(13, 5);//设置显示位置
+  display.clearDisplay();
+  display.setTextColor(WHITE);
+
+  display.setTextSize(2);
+  display.setCursor(13, 5);
   display.println("TKeyboard");
 
-  display.setTextSize(2);//设置字体大小  
-  display.setCursor(25, 40);//设置显示位置
+  display.setTextSize(2);
+  display.setCursor(25, 40);
   display.println("-ruxia-");
 }
+
 void loop() {
   currentStateCLK = digitalRead(CLK);
 
@@ -112,7 +112,7 @@ void loop() {
 
   // 旋钮按下
   int btnState = digitalRead(SW);
-  
+
   if (btnState == LOW) {
     //if 50ms have passed since last LOW pulse, it means that the
     //button has been pressed, released and pressed again
@@ -124,12 +124,13 @@ void loop() {
     // Remember last button press event
     lastButtonPress = millis();
   }
+
   // 矩阵按键
   char key = keypad.getKey();
   if (key != NO_KEY) {
     Serial.println(key);
     switch (key) {
-      Serial.println(key);
+        Serial.println(key);
       case '1':
         System.write(SYSTEM_SLEEP);
         break;
@@ -140,19 +141,12 @@ void loop() {
         Consumer.write(MEDIA_REWIND);
         break;
       case '4':
-        if (IsModeVOL) {
-          IsModeVOL = false;
-          digitalWrite(ModeLED, LOW);
-        }
-        else {
-          IsModeVOL = true;
-          digitalWrite(ModeLED, HIGH);
-        }
+        Consumer.write(MEDIA_FAST_FORWARD);
         break;
-      case '5':        
+      case '5':
         if (IsBtnMusic) {
           Consumer.write(MEDIA_PREV);
-          
+
         }
         else {
           Consumer.write(CONSUMER_BROWSER_BACK);
@@ -189,8 +183,17 @@ void loop() {
         Consumer.write(CONSUMER_EXPLORER);
         break;
       case 'b':
-        Consumer.write(MEDIA_FAST_FORWARD);
+
+        if (IsModeVOL) {
+          IsModeVOL = false;
+          digitalWrite(ModeLED, LOW);
+        }
+        else {
+          IsModeVOL = true;
+          digitalWrite(ModeLED, HIGH);
+        }
         break;
+
       case 'c':
         if (IsBtnMusic) {
           IsBtnMusic = false;
@@ -204,6 +207,5 @@ void loop() {
     }
   }
 
-  delay(1)
-  ;
+  delay(1);
 }
