@@ -10,7 +10,7 @@
 
 ## 预览图
 
-+ 版本一：[TKeyboard](./TKeyboard/README.md)
++ 版本一：[TKeyboard](./TKeyboard)
 
 
 
@@ -18,7 +18,7 @@
 
 
 
-+ 版本二：[TKeyboard2(开发中)](./TKeyboard2/README.md)
++ 版本二：[TKeyboard2(开发中)](./TKeyboard2)
 
 <img src="./TKeyboard2/Preview/TKeyboard2.jpg" style="zoom:8%;" />
 
