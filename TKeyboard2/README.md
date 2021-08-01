@@ -6,8 +6,7 @@
 
 ### 预览图
 
-<img src="./Preview/TKeyboard2.jpg" style="zoom:8%;" />
-
+![](./Preview/TKeyboard2.jpg)
 ### 组装
 
 元件焊接位置见bom文件夹下文件

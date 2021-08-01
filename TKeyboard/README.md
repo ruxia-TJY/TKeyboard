@@ -8,9 +8,9 @@ Leonardo Pro Micro使用ATMega32U4的USB通信功能
 
 <p style="text-align:center;">成品图</p>
 
-<img src="./PreView/TKeyboard.jpg" style="zoom: 15%;" />
+![](./Preview/TKeyboard.jpg)
+![](./Preview/TKeyboard2.jpg)
 
-<img src="./PreView/TKeyboard2.jpg" style="zoom:15%;" />
 
 ### 组装
 

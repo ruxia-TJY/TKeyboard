@@ -12,13 +12,11 @@
 
 + 版本一：[TKeyboard](./TKeyboard)
 
-
-
-<img src="./TKeyboard/PreView/TKeyboard.jpg" style="zoom: 8%;" />
+![](./TKeyboard/Preview/TKeyboard.jpg)
 
 
 
 + 版本二：[TKeyboard2(开发中)](./TKeyboard2)
 
-<img src="./TKeyboard2/Preview/TKeyboard2.jpg" style="zoom:8%;" />
+![](./TKeyboard2/Preview/TKeyboard2.jpg)
 
