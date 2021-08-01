@@ -12,7 +12,7 @@
 
 + 版本一：[TKeyboard](./TKeyboard)
 
-![](./TKeyboard/Preview/TKeyboard.jpg)
+![](./TKeyboard/Preview/TKeyboard.png)
 
 
 
