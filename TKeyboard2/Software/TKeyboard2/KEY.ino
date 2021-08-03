@@ -5,7 +5,6 @@
    \s Shift
    \a Alt
 */
-
 void readKEYFromEEPROM(String & KEY, int place, bool addr)
 {
   if (addr)
@@ -27,42 +26,7 @@ void readKEYFromEEPROM(String & KEY, int place, bool addr)
     }
   }
 }
-void setKeyV()
-{
-  KEY0 = "V";
-  KEY1 = "M";
-  KEY2 = "L";
-  KEY3 = "W33";
-  KEY4 = "C";
-  KEY5 = "K";
-  KEY6 = "I";
-  KEY7 = "B";
-  KEY8 = "S";
-  KEY9 = "Y";
-  KEY10 = "E";
-  KEY11 = "Q";
-  KEY12 = "O";
-  KEY13 = "P";
-  KEY14 = "T";
-  KEY15 = "A";
-  KEY16 = "H";
-  KEY17 = "R";
-  KEY18 = "Z";
-  KEY19 = "X";
-  KEY20 = "+";
-  KEY21 = "-";
-  KEY22 = "*";
-  KEY23 = "/";
-  KEY24 = "=";
 
-  EC11_1_LEFT = "\\d";
-  EC11_1_RIGHT = "\\u";
-  EC11_1_CLK = "\\m";
-
-  EC11_2_LEFT = "\\k";
-  EC11_2_RIGHT = "\\j";
-  EC11_2_CLK = "";
-}
 // 从EEPROM中读取键值
 void readFromEEPROM()
 {
@@ -158,9 +122,11 @@ void setEEPROM()
 void showKEY(String& KEY)
 {
   Serial.println(KEY);
-  // 是否转义
-  bool isEscape = false;
 
+  bool isEscape = false;    // 是否转义
+  bool isCaps = false;      // 是否强制转换大写
+
+  // 循环字符串字符
   for (int i = 0; i < KEY.length(); i++) {
     if (KEY[i] == '\\') {
       isEscape = true;
@@ -169,6 +135,9 @@ void showKEY(String& KEY)
 
     if (isEscape) {
       switch (KEY[i]) {
+        case 'b'://是否强制转换大写
+          isCaps = true;
+          break;
         case 'n'://Enter
           Keyboard.write(KEY_ENTER);
           break;
@@ -180,11 +149,11 @@ void showKEY(String& KEY)
           break;
         case 'u':// 音量上升
           Consumer.write(MEDIA_VOL_UP);
-//          drawVOL(true);
+          //          drawVOL(true);
           break;
         case 'd'://音量下降
           Consumer.write(MEDIA_VOL_DOWN);
-//          drawVOL(false);
+          //          drawVOL(false);
           break;
         case 'j'://亮度上升
           Consumer.write(CONSUMER_BRIGHTNESS_UP);
@@ -199,7 +168,55 @@ void showKEY(String& KEY)
       isEscape = false;
     }
     else {
-      Keyboard.write(KEY[i]);
+      // 当开启CAPS时候，可以防止输入法，但是，原本的字符串大写也会变成小写。
+      if (isCaps && (LS595_LED_DATA[5] == 0) && (KEY[i] >= 'a' && KEY[i] <= 'z')) {
+        Serial.println("未开启大写");
+        Keyboard.write(KEY_CAPS_LOCK);
+        Keyboard.write(KEY[i]);
+        Keyboard.write(KEY_CAPS_LOCK);
+      }
+      else
+        Keyboard.write(KEY[i]);
     }
   }
 }
+
+// 对EEPROM设值
+//void setKeyForEEPROM()
+//{
+//  KEY0 = "\\bV";
+//  KEY1 = "\\bM";
+//  KEY2 = "\\bL";
+//  KEY3 = "\\bW";
+//  KEY4 = "\\bC";
+//  KEY5 = "\\bK";
+//  KEY6 = "\\bI";
+//  KEY7 = "\\bB";
+//  KEY8 = "\\bS";
+//  KEY9 = "\\bY";
+//  KEY10 = "\\bE";
+//  KEY11 = "\\bQ";
+//  KEY12 = "\\bO";
+//  KEY13 = "\\bP";
+//  KEY14 = "\\bT";
+//  KEY15 = "\\bA";
+//  KEY16 = "\\bH";
+//  KEY17 = "\\bR";
+//  KEY18 = "\\bZ";
+//  KEY19 = "\\bX";
+//  KEY20 = "+";
+//  KEY21 = "-";
+//  KEY22 = "*";
+//  KEY23 = "/";
+//  KEY24 = "=";
+//
+//  EC11_1_LEFT = "\\d";
+//  EC11_1_RIGHT = "\\u";
+//  EC11_1_CLK = "\\m";
+//
+//  EC11_2_LEFT = "\\k";
+//  EC11_2_RIGHT = "\\j";
+//  EC11_2_CLK = "";
+//  // 写入EEPROM
+//  setEEPROM();
+//}

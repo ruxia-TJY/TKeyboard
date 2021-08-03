@@ -56,7 +56,6 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 int freq = 0;
 
 void setup() {
-  Serial.begin(9600);
   swSerial.begin(9600);
   BootKeyboard.begin();
   Consumer.begin();
@@ -77,10 +76,12 @@ void setup() {
 
   lastStateCLK1 = digitalRead(CLK1_PIN);
   lastStateCLK2 = digitalRead(CLK2_PIN);
+  // 从EEPROM中读取键值
   readFromEEPROM();
 }
 
 void loop() {
+  // freq计次1000下，清屏
   freq++;
   if (freq == 1000) {
     display.clearDisplay();
@@ -90,10 +91,9 @@ void loop() {
 
   Keypad.checkChanges();
   if (Keypad.isKeyChanged()) {
-    Serial.println(Keypad.getKeyValue());
     switch (Keypad.getKeyValue()) {
       case 0:
-        showKEY(KEY0);
+        setEEPROM();
         break;
       case 1:
         showKEY(KEY1);
