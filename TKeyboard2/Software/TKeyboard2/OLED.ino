@@ -1,7 +1,8 @@
 /*
-   OLED动画
+   OLED
 */
 
+// 绘制音量动画，isup:是否为增加
 void drawVOL(bool isup)
 {
 //  display.clearDisplay();

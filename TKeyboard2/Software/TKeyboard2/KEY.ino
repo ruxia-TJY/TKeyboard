@@ -1,20 +1,23 @@
 /*
-   AT24c04一次只可以写入16个字节
-   \n ENTER
-   \c Ctrl
-   \s Shift
-   \a Alt
+   存储按键旋钮相关函数
 */
+
+// KEY:按键名，具体见KEY.h头文件里面
+// place:从哪一位开始读
+// addr:AT24C04芯片上下两个部分，地址不一样，true为上部分，false为下部分
 void readKEYFromEEPROM(String & KEY, int place, bool addr)
 {
   if (addr)
-    Wire.beginTransmission(EEPROM_I2C_ADDRESS);
+    Wire.beginTransmission(EEPROM_I2C_ADDRESS_1);
   else
-    Wire.beginTransmission(0x51);
+    Wire.beginTransmission(EEPROM_I2C_ADDRESS_2);
   Wire.write(place);
   Wire.endTransmission();
   delay(5);
-  Wire.requestFrom(EEPROM_I2C_ADDRESS, 16);
+  if (addr)
+    Wire.requestFrom(EEPROM_I2C_ADDRESS_1, 16);
+  else
+    Wire.requestFrom(EEPROM_I2C_ADDRESS_2, 16);
   delay(10);
   if (Wire.available()) {
     KEY = "";
@@ -28,6 +31,7 @@ void readKEYFromEEPROM(String & KEY, int place, bool addr)
 }
 
 // 从EEPROM中读取键值
+// EEPROM一次只能传输16字节，所以需要多次读取
 void readFromEEPROM()
 {
   readKEYFromEEPROM(KEY0, 0, true);
@@ -64,25 +68,31 @@ void readFromEEPROM()
   readKEYFromEEPROM(EC11_2_CLK, 224, false);
 }
 
-
+// 写入字符串
+// KEY: 要写的字符串名称，详见KEY.h文件
+// place:写入的起始位
+// addr:AT24C04芯片的上部分还是下部分,true:上部分；false：下部分
 void setKEYEEPROM(String &KEY, int place, bool addr)
 {
   if (addr) {
-    Wire.beginTransmission(EEPROM_I2C_ADDRESS);
+    Wire.beginTransmission(EEPROM_I2C_ADDRESS_1);
   }
   else {
-    Wire.beginTransmission(0x51);
+    Wire.beginTransmission(EEPROM_I2C_ADDRESS_2);
   }
   Wire.write(place);
+  // 写入每一个字符
   for (int i = 0; i < KEY.length(); i++) {
     Wire.write(KEY[i]);
   }
+  // 剩余字符填充255
   for (int i = KEY.length(); i < 16; i++) {
     Wire.write(255);
   }
   Wire.endTransmission();
 }
 
+// 设置EEPROM
 void setEEPROM()
 {
   setKEYEEPROM(KEY0, 0, true); delay(10);
@@ -119,21 +129,25 @@ void setEEPROM()
   setKEYEEPROM(EC11_2_CLK, 224, false); delay(10);
 }
 
+// 执行字符串
+// KEY:字符串名称
 void showKEY(String& KEY)
 {
-  Serial.println(KEY);
+//  Serial.println(KEY);
 
   bool isEscape = false;    // 是否转义
   bool isCaps = false;      // 是否强制转换大写
 
   // 循环字符串字符
   for (int i = 0; i < KEY.length(); i++) {
+    // 下一个字符进行转义
     if (KEY[i] == '\\') {
       isEscape = true;
       continue;
     }
 
     if (isEscape) {
+      // 转义具体内容
       switch (KEY[i]) {
         case 'b'://是否强制转换大写
           isCaps = true;
@@ -149,6 +163,7 @@ void showKEY(String& KEY)
           break;
         case 'u':// 音量上升
           Consumer.write(MEDIA_VOL_UP);
+          // 做了OLED动画，但是会卡
           //          drawVOL(true);
           break;
         case 'd'://音量下降
@@ -168,7 +183,7 @@ void showKEY(String& KEY)
       isEscape = false;
     }
     else {
-      // 当开启CAPS时候，可以防止输入法，但是，原本的字符串大写也会变成小写。
+      // 当开启CAPS时候，可以防止输入法，但是，字符串中的内容也会进行大小写转换
       if (isCaps && (LS595_LED_DATA[5] == 0) && (KEY[i] >= 'a' && KEY[i] <= 'z')) {
         Serial.println("未开启大写");
         Keyboard.write(KEY_CAPS_LOCK);
@@ -182,6 +197,7 @@ void showKEY(String& KEY)
 }
 
 // 对EEPROM设值
+// 可以取消注释，修改字符串内容
 //void setKeyForEEPROM()
 //{
 //  KEY0 = "\\bV";

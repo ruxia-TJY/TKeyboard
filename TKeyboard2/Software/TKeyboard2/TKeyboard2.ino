@@ -29,8 +29,9 @@
 #define LS595_LATCH_PIN 20
 #define LS595_CLOCK_PIN 19
 
-// EEPROM 地址
-#define EEPROM_I2C_ADDRESS 0x50
+// EEPROM 地址，使用AT24C04芯片，有两个部分
+#define EEPROM_I2C_ADDRESS_1 0x50
+#define EEPROM_I2C_ADDRESS_2 0x51
 
 // OLED
 #define SCREEN_WIDTH 128
@@ -45,6 +46,7 @@ int lastStateCLK2;
 unsigned long lastButton1Press = 0;
 unsigned long lastButton2Press = 0;
 
+// LED状态列表，通过此列表设置每个LED的亮暗
 int LS595_LED_DATA[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 // BC6301芯片
 SoftwareSerial swSerial(8, 6);
@@ -76,7 +78,8 @@ void setup() {
 
   lastStateCLK1 = digitalRead(CLK1_PIN);
   lastStateCLK2 = digitalRead(CLK2_PIN);
-  // 从EEPROM中读取键值
+  
+  // 从EEPROM存储中读取键值
   readFromEEPROM();
 }
 
@@ -89,11 +92,19 @@ void loop() {
     freq = 0;
   }
 
+  // 按键
   Keypad.checkChanges();
   if (Keypad.isKeyChanged()) {
+    // 从上->下，从左->右边。按键值依次是
+    // 0  6   12  18  24
+    // 1  7   13  19  25
+    // 2  8   14  20  26
+    // 3  9   15  21  27
+    // 4  10  16  22  28
+    // 这个地方代码多且丑，不知道Arduino有没有更好的方法
     switch (Keypad.getKeyValue()) {
       case 0:
-        setEEPROM();
+        showKEY(KEY0);
         break;
       case 1:
         showKEY(KEY1);
@@ -221,11 +232,12 @@ void loop() {
   }
 
 
-  // Led状态
+  // 设置Led列表开关
   LS595_LED_DATA[5] = (BootKeyboard.getLeds() & LED_CAPS_LOCK) ? 1 : 0;
   LS595_LED_DATA[4] = (BootKeyboard.getLeds() & LED_NUM_LOCK) ? 1 : 0;
   LS595_LED_DATA[6] = (BootKeyboard.getLeds() & LED_SCROLL_LOCK) ? 1 : 0;
-
+  
+  // 根据LS595_LED_DATA列表设置每个LED的开关
   setLeds();
   delay(1);
 }
@@ -234,12 +246,10 @@ void loop() {
 void setLeds()
 {
   digitalWrite(LS595_LATCH_PIN, LOW);
-
   for (int i = 0; i < 8; i++) {
     digitalWrite(LS595_CLOCK_PIN, LOW);
     digitalWrite(LS595_DATA_PIN, LS595_LED_DATA[i]);
     digitalWrite(LS595_CLOCK_PIN, HIGH);
   }
-
   digitalWrite(LS595_LATCH_PIN, HIGH);
 }
