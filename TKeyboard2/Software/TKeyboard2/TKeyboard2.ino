@@ -1,10 +1,12 @@
 /*
-   TKeyboard2
-   一个基于32U4的小键盘项目
-
-   EEPROM：AT24C04
-   按键芯片：BC6301
-   LED控制：74LS595
+ * TKeyboard2
+ * 一个基于32U4的小键盘项目
+ * 
+ * 开源链接: https://github.com/ruxia-TJY/TKeyboard
+ * 元器件:
+ *  > EEPROM：AT24C04
+ *  > 按键芯片：BC6301
+ *  > LED控制：74LS595
 */
 
 #include<HID-Project.h>
@@ -39,6 +41,16 @@
 #define OLED_RESET 4
 #define OLED_I2C_ADDRESS 0x3c
 
+// 位操作
+#define setbit(x,y) x|=(1<<y)
+#define clrbit(x,y) x&=~(1<<y)
+#define getbit(x,y) ((x & (1 << y)) >> y)
+
+// 特殊功能相应的位置，详见下面的LED定义LEDLS595_LED_DATA
+#define LED_NUM_LOCK_BIT 2
+#define LED_CAPS_LOCK_BIT 1
+#define LED_SCROLL_LOCK_BIT 0
+
 int currentStateCLK1;
 int currentStateCLK2;
 int lastStateCLK1;
@@ -47,7 +59,10 @@ unsigned long lastButton1Press = 0;
 unsigned long lastButton2Press = 0;
 
 // LED状态列表，通过此列表设置每个LED的亮暗
-int LS595_LED_DATA[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+//int LS595_LED_DATA[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+unsigned char LS595_LED_DATA = 0;
+
+
 // BC6301芯片
 SoftwareSerial swSerial(8, 6);
 BcKeyScan Keypad(swSerial);
@@ -55,7 +70,7 @@ BcKeyScan Keypad(swSerial);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 // 每隔一段时间清屏
-int freq = 0;
+unsigned int freq = 0;
 
 void setup() {
   swSerial.begin(9600);
@@ -78,9 +93,6 @@ void setup() {
 
   lastStateCLK1 = digitalRead(CLK1_PIN);
   lastStateCLK2 = digitalRead(CLK2_PIN);
-  
-  // 从EEPROM存储中读取键值
-  readFromEEPROM();
 }
 
 void loop() {
@@ -95,89 +107,7 @@ void loop() {
   // 按键
   Keypad.checkChanges();
   if (Keypad.isKeyChanged()) {
-    // 从上->下，从左->右边。按键值依次是
-    // 0  6   12  18  24
-    // 1  7   13  19  25
-    // 2  8   14  20  26
-    // 3  9   15  21  27
-    // 4  10  16  22  28
-    // 这个地方代码多且丑，不知道Arduino有没有更好的方法
-    switch (Keypad.getKeyValue()) {
-      case 0:
-        showKEY(KEY0);
-        break;
-      case 1:
-        showKEY(KEY1);
-        break;
-      case 2:
-        showKEY(KEY2);
-        break;
-      case 3:
-        showKEY(KEY3);
-        break;
-      case 4:
-        showKEY(KEY4);
-      case 6:
-        showKEY(KEY5);
-        break;
-      case 7:
-        showKEY(KEY6);
-        break;
-      case 8:
-        showKEY(KEY7);
-        break;
-      case 9:
-        showKEY(KEY8);
-        break;
-      case 10:
-        showKEY(KEY9);
-        break;
-      case 12:
-        showKEY(KEY10);
-        break;
-      case 13:
-        showKEY(KEY11);
-        break;
-      case 14:
-        showKEY(KEY12);
-        break;
-      case 15:
-        showKEY(KEY13);
-        break;
-      case 16:
-        showKEY(KEY14);
-        break;
-      case 18:
-        showKEY(KEY15);
-        break;
-      case 19:
-        showKEY(KEY16);
-        break;
-      case 20:
-        showKEY(KEY17);
-        break;
-      case 21:
-        showKEY(KEY18);
-        break;
-      case 22:
-        showKEY(KEY19);
-        break;
-      case 24:
-        showKEY(KEY20);
-        break;
-      case 25:
-        showKEY(KEY21);
-        break;
-      case 26:
-        showKEY(KEY22);
-        break;
-      case 27:
-        showKEY(KEY23);
-        break;
-      case 28:
-        showKEY(KEY24);
-        break;
-    }
+    sendKEY(Keypad.getKeyValue());
   }
 
   // 旋转编码器
@@ -187,11 +117,11 @@ void loop() {
   if (currentStateCLK1 != lastStateCLK1 && currentStateCLK1 == 1) {
     if (digitalRead(DT1_PIN) != currentStateCLK1) {
       // 旋钮1右旋
-      showKEY(EC11_1_RIGHT);
+      sendKEY(30);
     }
     else {
       // 旋钮1左旋
-      showKEY(EC11_1_LEFT);
+      sendKEY(29);
     }
   }
 
@@ -202,7 +132,7 @@ void loop() {
   if (btn1State == LOW) {
     if (millis() - lastButton1Press > 50) {
       // 旋钮1按下
-      showKEY(EC11_1_CLK);
+      sendKEY(31);
     }
     lastButton1Press = millis();
   }
@@ -211,11 +141,11 @@ void loop() {
   if (currentStateCLK2 != lastStateCLK2 && currentStateCLK2 == 1) {
     if (digitalRead(DT2_PIN) != currentStateCLK2) {
       // 旋钮2右旋
-      showKEY(EC11_2_RIGHT);
+      sendKEY(33);
     }
     else {
       // 旋钮2左旋
-      showKEY(EC11_2_LEFT);
+      sendKEY(32);
     }
   }
 
@@ -226,30 +156,39 @@ void loop() {
   if (btn2State == LOW) {
     if (millis() - lastButton2Press > 50) {
       // 旋钮2按下
-      showKEY(EC11_2_CLK);
+      sendKEY(34);
     }
     lastButton2Press = millis();
   }
 
 
   // 设置Led列表开关
-  LS595_LED_DATA[5] = (BootKeyboard.getLeds() & LED_CAPS_LOCK) ? 1 : 0;
-  LS595_LED_DATA[4] = (BootKeyboard.getLeds() & LED_NUM_LOCK) ? 1 : 0;
-  LS595_LED_DATA[6] = (BootKeyboard.getLeds() & LED_SCROLL_LOCK) ? 1 : 0;
-  
-  // 根据LS595_LED_DATA列表设置每个LED的开关
+  if((BootKeyboard.getLeds() & LED_CAPS_LOCK))
+    setbit(LS595_LED_DATA,LED_CAPS_LOCK_BIT);
+  else
+    clrbit(LS595_LED_DATA,LED_CAPS_LOCK_BIT);
+
+  if((BootKeyboard.getLeds() & LED_NUM_LOCK))
+    setbit(LS595_LED_DATA,LED_NUM_LOCK_BIT);
+  else
+    clrbit(LS595_LED_DATA,LED_NUM_LOCK_BIT);
+
+  if((BootKeyboard.getLeds() & LED_SCROLL_LOCK))
+    setbit(LS595_LED_DATA,LED_SCROLL_LOCK_BIT);
+  else
+    clrbit(LS595_LED_DATA,LED_SCROLL_LOCK_BIT);
+
+    
+  // 根据LS595_LED_DATA设置每个LED的开关
   setLeds();
   delay(1);
 }
 
 
+// 根据LS595_LED_DATA设置LED。
 void setLeds()
 {
   digitalWrite(LS595_LATCH_PIN, LOW);
-  for (int i = 0; i < 8; i++) {
-    digitalWrite(LS595_CLOCK_PIN, LOW);
-    digitalWrite(LS595_DATA_PIN, LS595_LED_DATA[i]);
-    digitalWrite(LS595_CLOCK_PIN, HIGH);
-  }
+  shiftOut(LS595_DATA_PIN,LS595_CLOCK_PIN,MSBFIRST,LS595_LED_DATA);
   digitalWrite(LS595_LATCH_PIN, HIGH);
 }
